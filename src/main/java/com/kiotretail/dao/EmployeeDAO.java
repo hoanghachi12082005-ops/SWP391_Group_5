@@ -270,5 +270,22 @@ public class EmployeeDAO {
         }
         return false;
     }
+
+public boolean checkUsernameAndEmailMatch(String username, String email) {
+        String sql = "SELECT employee_id FROM employees WHERE username = ? AND email = ? AND status = 'active'";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, username);
+            stmt.setString(2, email);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); 
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     
 }
