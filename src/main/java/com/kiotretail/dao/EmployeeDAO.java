@@ -222,28 +222,32 @@ public class EmployeeDAO {
     /**
      * Thực hiện thêm tài khoản người dùng mới vào hệ thống Database
      */
-    public boolean registerEmployee(String fullName, String username, String email, String encryptedPassword, int roleId, String status) {
-        // Ánh xạ chính xác theo thuộc tính bảng employees của bạn bao gồm:
-        // full_name, username, email, password, role_id, status, created_at, và sinh mã employee_code tự động ngắn gọn
-        String sql = "INSERT INTO employees (employee_code, full_name, email, username, password, role_id, status, created_at) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())";
+    public boolean registerEmployee(String fullName, String username, String email, String password, int roleId, String status) {
+        // Đã bổ sung trường branch_id để đồng bộ cấu trúc bảng employees của bạn
+        String sql = "INSERT INTO employees (employee_code, full_name, email, username, password, role_id, branch_id, status, created_at) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
                    
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            // Tạo tạm một mã định danh ngẫu nhiên ngắn cho nhân viên mới đăng ký tự do
+            // Tạo mã định danh nhân viên tự động ngẫu nhiên
             String randomEmpCode = "EMP" + (System.currentTimeMillis() % 100000);
+            
+            // Đảm bảo số 1 này tồn tại sẵn trong bảng 'branches' của bạn
+            int defaultBranchId = 1; 
             
             stmt.setString(1, randomEmpCode);
             stmt.setString(2, fullName);
             stmt.setString(3, email);
             stmt.setString(4, username);
-            stmt.setString(5, encryptedPassword); // Mật khẩu đã được hash
+            stmt.setString(5, password); 
             stmt.setInt(6, roleId);
-            stmt.setString(7, status);
+            stmt.setInt(7, defaultBranchId);
+            stmt.setString(8, status);
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
+            System.out.println("Lỗi insert tài khoản đăng ký mới:");
             e.printStackTrace();
         }
         return false;
@@ -252,12 +256,12 @@ public class EmployeeDAO {
     /**
      * Cập nhật mật khẩu mới theo Email người dùng
      */
-    public boolean updatePasswordByEmail(String email, String encryptedPassword) {
+    public boolean updatePasswordByEmail(String email, String password) {
         String sql = "UPDATE employees SET password = ? WHERE email = ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setString(1, encryptedPassword);
+            stmt.setString(1, password); // Ghi đè mật khẩu mới không mã hóa
             stmt.setString(2, email);
             
             return stmt.executeUpdate() > 0;

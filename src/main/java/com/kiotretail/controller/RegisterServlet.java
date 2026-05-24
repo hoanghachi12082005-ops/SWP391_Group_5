@@ -1,7 +1,6 @@
 package com.kiotretail.controller;
 
 import com.kiotretail.dao.EmployeeDAO;
-import com.kiotretail.util.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -40,53 +39,53 @@ public class RegisterServlet extends HttpServlet {
         if (fullName == null || fullName.trim().isEmpty() ||
             username == null || username.trim().isEmpty() ||
             email == null || email.trim().isEmpty() ||
-            password == null || password.isEmpty() ||
-            confirmPassword == null || confirmPassword.isEmpty()) {
+            password == null || password.trim().isEmpty() ||
+            confirmPassword == null || confirmPassword.trim().isEmpty()) {
             
-            request.setAttribute("error", "Vui lòng điền đầy đủ tất cả các trường thông tin!");
+            request.setAttribute("error", "Vui lòng nhập đầy đủ tất cả các trường thông tin bắt buộc!");
             request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
             return;
         }
 
-        // 2. Kiểm tra độ mạnh mật khẩu (Yêu cầu tối thiểu từ 6 ký tự)
-        if (password.length() < 6) {
-            request.setAttribute("error", "Mật khẩu quá ngắn! Yêu cầu tối thiểu phải từ 6 ký tự trở lên.");
-            request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // 3. Kiểm tra xem Password và Confirm Password có khớp nhau không
+        // 2. Kiểm tra mật khẩu nhập lại có khớp không
         if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu xác nhận không trùng khớp! Vui lòng nhập lại.");
+            request.setAttribute("error", "Mật khẩu xác nhận không trùng khớp. Vui lòng nhập lại!");
             request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
             return;
         }
 
-        // 4. Kiểm tra xem Username đã tồn tại trong DB chưa
+        // 3. Kiểm tra độ dài mật khẩu (Ví dụ tối thiểu 6 ký tự)
+        if (password.length() < 6) {
+            request.setAttribute("error", "Mật khẩu quá ngắn, yêu cầu tối thiểu từ 6 ký tự trở lên!");
+            request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
+            return;
+        }
+
+        // 4. Kiểm tra xem tên tài khoản (Username) đã tồn tại trong hệ thống chưa
         if (employeeDAO.checkUsernameExists(username.trim())) {
-            request.setAttribute("error", "Tên đăng nhập (Username) này đã được đăng ký bởi người khác!");
+            request.setAttribute("error", "Tên tài khoản này đã được đăng ký. Vui lòng chọn tên khác!");
             request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
             return;
         }
 
-        // 5. Kiểm tra xem Email đã được sử dụng chưa
+        // 5. Kiểm tra xem địa chỉ Email đã được ai đăng ký sử dụng chưa
         if (employeeDAO.checkEmailExists(email.trim())) {
-            request.setAttribute("error", "Địa chỉ Email này đã được sử dụng hệ thống!");
+            request.setAttribute("error", "Địa chỉ Email này đã được sử dụng trên hệ thống!");
             request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
             return;
         }
 
         // --- NẾU TẤT CẢ ĐỀU ĐÚNG: THỰC HIỆN ĐĂNG KÝ VÀ LƯU DỮ LIỆU ---
         
-        // Mã hóa mật khẩu thô sang chuỗi băm bảo mật SHA-256
-        String encryptedPassword = PasswordUtil.hashPassword(password);
+        // ĐÃ GỠ BỎ: Không dùng PasswordUtil.hashPassword(password) nữa
         
-        // Thiết lập tham số mặc định theo yêu cầu của bạn:
-        int defaultRoleId = 3;       // Quyền nhân viên mặc định (RoleID = 3)
+        // Thiết lập tham số mặc định theo cấu trúc dữ liệu:
+        int defaultRoleId = 3;           // Quyền nhân viên mặc định (RoleID = 3)
         String defaultStatus = "active"; // Trạng thái hoạt động tức thì cho tài khoản mới
 
+        // Truyền trực tiếp biến 'password' dạng văn bản thô vào hàm lưu dữ liệu
         boolean isSuccess = employeeDAO.registerEmployee(
-                fullName.trim(), username.trim(), email.trim(), encryptedPassword, defaultRoleId, defaultStatus
+                fullName.trim(), username.trim(), email.trim(), password, defaultRoleId, defaultStatus
         );
 
         if (isSuccess) {
@@ -94,7 +93,7 @@ public class RegisterServlet extends HttpServlet {
             request.setAttribute("successMessage", "Đăng ký thành công! Vui lòng thực hiện đăng nhập.");
             request.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(request, response);
         } else {
-            // Trường hợp lỗi kết nối hoặc DB bất ngờ
+            // Trường hợp lỗi kết nối hoặc Database
             request.setAttribute("error", "Đã xảy ra sự cố hệ thống trong quá trình xử lý dữ liệu. Hãy thử lại!");
             request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
         }

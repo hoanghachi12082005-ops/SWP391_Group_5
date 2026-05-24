@@ -1,7 +1,6 @@
 package com.kiotretail.controller;
 
 import com.kiotretail.dao.EmployeeDAO;
-import com.kiotretail.util.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -110,11 +109,10 @@ public class ForgotPasswordServlet extends HttpServlet {
                 return;
             }
 
-            // 4. Mã hóa mật khẩu mới theo chuẩn SHA-256 giống trang Đăng ký
-            String encryptedPassword = PasswordUtil.hashPassword(newPassword);
+            // Đtarget_line: ĐÃ GỠ BỎ xử lý băm mật khẩu mã hóa PasswordUtil.hashPassword()
 
-            // 5. Cập nhật vào DB
-            boolean isUpdated = employeeDAO.updatePasswordByEmail(sessionEmail, encryptedPassword);
+            // 4. Cập nhật trực tiếp mật khẩu chữ thô (newPassword) vào DB
+            boolean isUpdated = employeeDAO.updatePasswordByEmail(sessionEmail, newPassword);
 
             if (isUpdated) {
                 // Xóa các thông tin OTP tạm thời trong session
