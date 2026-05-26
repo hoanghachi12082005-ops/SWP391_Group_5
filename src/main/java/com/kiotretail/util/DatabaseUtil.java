@@ -10,9 +10,9 @@ import java.sql.SQLException;
  */
 public class DatabaseUtil {
 
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=SamplePE;trustServerCertificate=true";
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=DBFinora;trustServerCertificate=true";
     private static final String USERNAME = "sa";
-    private static final String PASSWORD = "123456";
+    private static final String PASSWORD = "123";
 
     static {
         try {
