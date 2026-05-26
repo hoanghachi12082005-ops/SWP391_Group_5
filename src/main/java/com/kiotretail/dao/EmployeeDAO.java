@@ -184,4 +184,108 @@ public class EmployeeDAO {
         employee.setCreatedAt(rs.getTimestamp("created_at"));
         return employee;
     }
+    
+    /**
+     * Kiểm tra xem Username đã tồn tại trong hệ thống chưa
+     */
+    public boolean checkUsernameExists(String username) {
+        String sql = "SELECT employee_id FROM employees WHERE username = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); // Nếu tìm thấy bản ghi nghĩa là Username đã tồn tại
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra xem Email đã được sử dụng chưa
+     */
+    public boolean checkEmailExists(String email) {
+        String sql = "SELECT employee_id FROM employees WHERE email = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); // Nếu tìm thấy bản ghi nghĩa là Email đã được dùng
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Thực hiện thêm tài khoản người dùng mới vào hệ thống Database
+     */
+    public boolean registerEmployee(String fullName, String username, String email, String password, int roleId, String status) {
+        // Đã bổ sung trường branch_id để đồng bộ cấu trúc bảng employees của bạn
+        String sql = "INSERT INTO employees (employee_code, full_name, email, username, password, role_id, branch_id, status, created_at) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+                   
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // Tạo mã định danh nhân viên tự động ngẫu nhiên
+            String randomEmpCode = "EMP" + (System.currentTimeMillis() % 100000);
+            
+            // Đảm bảo số 1 này tồn tại sẵn trong bảng 'branches' của bạn
+            int defaultBranchId = 1; 
+            
+            stmt.setString(1, randomEmpCode);
+            stmt.setString(2, fullName);
+            stmt.setString(3, email);
+            stmt.setString(4, username);
+            stmt.setString(5, password); 
+            stmt.setInt(6, roleId);
+            stmt.setInt(7, defaultBranchId);
+            stmt.setString(8, status);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Lỗi insert tài khoản đăng ký mới:");
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Cập nhật mật khẩu mới theo Email người dùng
+     */
+    public boolean updatePasswordByEmail(String email, String password) {
+        String sql = "UPDATE employees SET password = ? WHERE email = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, password); // Ghi đè mật khẩu mới không mã hóa
+            stmt.setString(2, email);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+public boolean checkUsernameAndEmailMatch(String username, String email) {
+        String sql = "SELECT employee_id FROM employees WHERE username = ? AND email = ? AND status = 'active'";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, username);
+            stmt.setString(2, email);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); 
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
 }
