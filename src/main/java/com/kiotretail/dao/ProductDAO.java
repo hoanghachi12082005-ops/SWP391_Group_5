@@ -18,27 +18,49 @@ public class ProductDAO {
      */
 
     public List<Product> getAllProducts(int page, int limit) {
-        int offset = (page-1)*limit;
+        return getProducts(page, limit, null, null, null);
+    }
+
+    public List<Product> getProducts(int page, int limit, String keyword, Integer categoryId, String status) {
+        int offset = (page - 1) * limit;
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, " +
-                "p.StockAlertQty, p.Status, p.CreatedAt, c.Name AS CategoryName " +
-                "FROM Product p " +
-                "LEFT JOIN Category c ON p.CategoryID = c.CategoryID " +
-                "ORDER BY p.CreatedAt DESC " +
-                "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, ");
+        sql.append("p.StockAlertQty, p.Status, p.CreatedAt, c.Name AS CategoryName ");
+        sql.append("FROM Product p ");
+        sql.append("LEFT JOIN Category c ON p.CategoryID = c.CategoryID ");
+        sql.append("WHERE 1 = 1 ");
+
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (p.SKU LIKE ? OR p.Name LIKE ?) ");
+            String pattern = "%" + keyword.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+        }
+        if (categoryId != null) {
+            sql.append("AND p.CategoryID = ? ");
+            params.add(categoryId);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append("AND p.Status = ? ");
+            params.add(status.trim());
+        }
+        sql.append("ORDER BY p.CreatedAt DESC ");
+        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, offset);
-            stmt.setInt(2, limit);
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            stmt.setInt(params.size() + 1, offset);
+            stmt.setInt(params.size() + 2, limit);
             ResultSet rs = stmt.executeQuery();
-
-
-                while (rs.next()) {
-                    products.add(extractProduct(rs));
-                }
-
-        }catch (SQLException e) {
+            while (rs.next()) {
+                products.add(extractProduct(rs));
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return products;

@@ -58,7 +58,7 @@
                         <select class="form-select" id="categoryFilter">
                             <option value="">Tất cả nhóm hàng</option>
                             <c:forEach var="category" items="${categories}">
-                                <option value="${category.categoryId}">
+                                <option value="${category.categoryId}" ${param.categoryId == category.categoryId ? 'selected' : ''}>
                                     <c:out value="${category.name}"/>
                                 </option>
                             </c:forEach>

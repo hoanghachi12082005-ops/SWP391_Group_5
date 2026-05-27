@@ -83,24 +83,54 @@ public class CategoryDAO {
         sql.append("WHERE 1 = 1 ");
 
         List<Object> params = new ArrayList<>();
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (c.Name LIKE ? OR c.Description LIKE ?) ");
-            String pattern = "%" + keyword.trim() + "%";
-            params.add(pattern);
-            params.add(pattern);
-        }
-        if (status != null && !status.trim().isEmpty()) {
-            sql.append("AND c.Status = ? ");
-            params.add(status.trim());
-        }
-        if (parentName != null && !parentName.trim().isEmpty()) {
-            if (isRootParent(parentName)) {
-                sql.append("AND c.ParentID IS NULL ");
-            } else {
-                sql.append("AND p.Name = ? ");
-                params.add(parentName.trim());
+        applyCategoryFilters(sql, params, keyword, status, parentName);
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            setParameters(stmt, params);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return 0;
+    }
+
+    public int countRootCategories(String keyword, String status, String parentName) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(1) FROM Category c ");
+        sql.append("LEFT JOIN Category p ON c.ParentID = p.CategoryID ");
+        sql.append("WHERE c.ParentID IS NULL ");
+
+        List<Object> params = new ArrayList<>();
+        applyCategoryFilters(sql, params, keyword, status, parentName);
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            setParameters(stmt, params);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int countLinkedProducts(String keyword, String status, String parentName) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(pr.ProductID) FROM Category c ");
+        sql.append("LEFT JOIN Category p ON c.ParentID = p.CategoryID ");
+        sql.append("LEFT JOIN Product pr ON c.CategoryID = pr.CategoryID ");
+        sql.append("WHERE 1 = 1 ");
+
+        List<Object> params = new ArrayList<>();
+        applyCategoryFilters(sql, params, keyword, status, parentName);
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -245,6 +275,27 @@ public class CategoryDAO {
     private void setParameters(PreparedStatement stmt, List<Object> params) throws SQLException {
         for (int i = 0; i < params.size(); i++) {
             stmt.setObject(i + 1, params.get(i));
+        }
+    }
+
+    private void applyCategoryFilters(StringBuilder sql, List<Object> params, String keyword, String status, String parentName) {
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (c.Name LIKE ? OR c.Description LIKE ?) ");
+            String pattern = "%" + keyword.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append("AND c.Status = ? ");
+            params.add(status.trim());
+        }
+        if (parentName != null && !parentName.trim().isEmpty()) {
+            if (isRootParent(parentName)) {
+                sql.append("AND c.ParentID IS NULL ");
+            } else {
+                sql.append("AND p.Name = ? ");
+                params.add(parentName.trim());
+            }
         }
     }
 

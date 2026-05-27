@@ -38,8 +38,16 @@ public class GetProductsAction implements ApiAction {
             }
             else { limit = userlimit; }
         }
+        String keyword = request.getParameter("keyword");
+        String status = request.getParameter("status");
+        String categoryIdParam = request.getParameter("categoryId");
+        Integer categoryId = null;
+        if (categoryIdParam != null && !categoryIdParam.trim().isEmpty()) {
+            categoryId = Integer.parseInt(categoryIdParam.trim());
+        }
+
         ProductDAO productDAO = new ProductDAO();
-        List<Product> list = productDAO.getAllProducts(page, limit);
+        List<Product> list = productDAO.getProducts(page, limit, keyword, categoryId, status);
         return new ApiResponse(200,"Get okay "+ limit + "product/page", list);
     }
 }

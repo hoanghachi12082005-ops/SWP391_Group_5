@@ -54,26 +54,33 @@ public class CategoryServlet extends HttpServlet {
         String keyword = trimToNull(request.getParameter("keyword"));
         String status = normalizeStatus(request.getParameter("status"));
         String parentNameFilter = trimToNull(request.getParameter("parentName"));
+        boolean isPrintMode = "true".equalsIgnoreCase(trimToNull(request.getParameter("printMode")));
+
+        int totalItems = categoryDAO.countCategories(keyword, status, parentNameFilter);
+        int totalRootCategories = categoryDAO.countRootCategories(keyword, status, parentNameFilter);
+        int totalLinkedProducts = categoryDAO.countLinkedProducts(keyword, status, parentNameFilter);
 
         int page = 1;
-        int limit = 10;
-        String pageParam = request.getParameter("page");
-        if (pageParam != null && !pageParam.trim().isEmpty()) {
-            try {
-                page = Integer.parseInt(pageParam);
-                if (page < 1) {
+        int limit = isPrintMode ? Math.max(totalItems, 1) : 10;
+        if (!isPrintMode) {
+            String pageParam = request.getParameter("page");
+            if (pageParam != null && !pageParam.trim().isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) {
+                        page = 1;
+                    }
+                } catch (NumberFormatException e) {
                     page = 1;
                 }
-            } catch (NumberFormatException e) {
-                page = 1;
             }
         }
 
         List<Category> categories = categoryDAO.getCategories(keyword, status, parentNameFilter, page, limit);
         List<Category> parentOptions = categoryDAO.getActiveCategories();
-        int totalItems = categoryDAO.countCategories(keyword, status, parentNameFilter);
-        int totalPages = (int) Math.ceil((double) totalItems / limit);
+        int totalPages = isPrintMode ? 1 : (int) Math.ceil((double) totalItems / limit);
 
+        request.setAttribute("printMode", isPrintMode);
         request.setAttribute("categories", categories);
         request.setAttribute("parentOptions", parentOptions);
         request.setAttribute("keyword", keyword);
@@ -82,6 +89,8 @@ public class CategoryServlet extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalItems", totalItems);
+        request.setAttribute("totalRootCategories", totalRootCategories);
+        request.setAttribute("totalLinkedProducts", totalLinkedProducts);
         request.getRequestDispatcher("/WEB-INF/views/admin/categories.jsp").forward(request, response);
     }
 
