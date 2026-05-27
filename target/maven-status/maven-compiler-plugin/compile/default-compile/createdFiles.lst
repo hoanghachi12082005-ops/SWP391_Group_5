@@ -9,7 +9,6 @@ com\kiotretail\controller\LogoutServlet.class
 com\kiotretail\filter\EncodingFilter.class
 com\kiotretail\api\BaseController.class
 com\kiotretail\controller\ChangePasswordServlet.class
-.netbeans_automatic_build
 com\kiotretail\model\Employee.class
 com\kiotretail\dao\ProductDAO.class
 com\kiotretail\model\Product.class
