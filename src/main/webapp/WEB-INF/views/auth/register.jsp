@@ -46,7 +46,7 @@
                     </div>
                 </c:if>
 
-                <form action="${pageContext.request.contextPath}/admin/register" method="POST" class="mt-4">
+                <form action="${pageContext.request.contextPath}/register" method="POST" class="mt-4">
 
                     <%-- 1. Họ và tên --%>
                     <div class="mb-3">

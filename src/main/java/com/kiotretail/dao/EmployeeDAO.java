@@ -34,10 +34,17 @@ public class EmployeeDAO {
 
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
+
                 Employee employee = new Employee();
-                // Map dữ liệu từ ResultSet vào đối tượng Employee của bạn ở đây...
-                // employee.setEmployeeId(rs.getInt("EmployeeID"));
-                // ...
+
+                employee.setEmployeeId(rs.getInt("EmployeeID"));
+                employee.setFullName(rs.getString("FullName"));
+                employee.setEmail(rs.getString("Email"));
+                employee.setPhone(rs.getString("Phone"));
+                employee.setRoleId(rs.getInt("RoleID"));
+                employee.setBranchId(rs.getInt("BranchID"));
+                employee.setStatus(rs.getString("Status"));
+
                 return employee;
             }
         } catch (SQLException e) {
@@ -106,7 +113,6 @@ public class EmployeeDAO {
             stmt.setString(2, employee.getFullName());
             stmt.setString(3, employee.getEmail());
             stmt.setString(4, employee.getPhone());
-            stmt.setString(5, employee.getUsername());
             stmt.setString(6, employee.getPassword());
             stmt.setInt(7, employee.getRoleId());
             stmt.setInt(8, employee.getBranchId());
@@ -174,7 +180,6 @@ public class EmployeeDAO {
         employee.setFullName(rs.getString("full_name"));
         employee.setEmail(rs.getString("email"));
         employee.setPhone(rs.getString("phone"));
-        employee.setUsername(rs.getString("username"));
         employee.setRoleId(rs.getInt("role_id"));
         employee.setRoleName(rs.getString("role_name"));
         employee.setBranchId(rs.getInt("branch_id"));
@@ -218,55 +223,30 @@ public class EmployeeDAO {
         return false;
     }
 
-//    /**
-//     * Thực hiện thêm tài khoản người dùng mới vào hệ thống Database
-//     */
-//    public boolean registerEmployee(String fullName, String username, String email, String password, int roleId, String status) {
-//        // Đã bổ sung trường branch_id để đồng bộ cấu trúc bảng employees của bạn
-//        String sql = "INSERT INTO employees (employee_code, full_name, email, username, password, role_id, branch_id, status, created_at) "
-//                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
-//
-//        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-//
-//            // Tạo mã định danh nhân viên tự động ngẫu nhiên
-//            String randomEmpCode = "EMP" + (System.currentTimeMillis() % 100000);
-//
-//            // Đảm bảo số 1 này tồn tại sẵn trong bảng 'branches' của bạn
-//            int defaultBranchId = 1;
-//
-//            stmt.setString(1, randomEmpCode);
-//            stmt.setString(2, fullName);
-//            stmt.setString(3, email);
-//            stmt.setString(4, username);
-//            stmt.setString(5, password);
-//            stmt.setInt(6, roleId);
-//            stmt.setInt(7, defaultBranchId);
-//            stmt.setString(8, status);
-//
-//            return stmt.executeUpdate() > 0;
-//        } catch (SQLException e) {
-//            System.out.println("Lỗi insert tài khoản đăng ký mới:");
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
 
     /**
      * Cập nhật mật khẩu mới theo Email người dùng
      */
-    public boolean updatePasswordByEmail(String email, String password) {
-        String sql = "UPDATE employees SET password = ? WHERE email = ?";
-        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public boolean updatePasswordByEmail(String email, String newPassword) {
 
-            stmt.setString(1, password); // Ghi đè mật khẩu mới không mã hóa
-            stmt.setString(2, email);
+    String sql = "UPDATE Employee "
+               + "SET PasswordHash = ? "
+               + "WHERE Email = ?";
 
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+    try (Connection conn = DatabaseUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setString(1, newPassword);
+        ps.setString(2, email);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+
+    return false;
+}
 
     public boolean checkUsernameAndEmailMatch(String username, String email) {
         String sql = "SELECT employee_id FROM employees WHERE username = ? AND email = ? AND status = 'active'";
@@ -302,14 +282,14 @@ public class EmployeeDAO {
 
             if (rs.next()) {
                 String storedPassword = rs.getString("PasswordHash");
-                if (storedPassword != null && storedPassword.equals(currentPassword)) {
+                if (storedPassword != null && storedPassword.trim().equals(currentPassword.trim())) {
 
                     psUpdate = conn.prepareStatement(updateSql);
                     psUpdate.setString(1, newPassword); // Mật khẩu mới đạt chuẩn 6 ký tự + ký tự đặc biệt
                     psUpdate.setInt(2, employeeId);
 
                     int rowsAffected = psUpdate.executeUpdate();
-                    return rowsAffected > 0; 
+                    return rowsAffected > 0;
                 }
             }
         } catch (SQLException e) {
@@ -332,57 +312,81 @@ public class EmployeeDAO {
                 e.printStackTrace();
             }
         }
-        return false; 
+        return false;
     }
 
     public boolean isEmailExists(String email) {
-    String sql = "SELECT COUNT(*) FROM Employee WHERE Email = ?";
-    
-    try (Connection conn = DatabaseUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        
-        ps.setString(1, email);
-        
-        try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                // Nếu số lượng tìm thấy lớn hơn 0 nghĩa là đã trùng email
-                return rs.getInt(1) > 0;
+        String sql = "SELECT COUNT(*) FROM Employee WHERE Email = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Nếu số lượng tìm thấy lớn hơn 0 nghĩa là đã trùng email
+                    return rs.getInt(1) > 0;
+                }
             }
+        } catch (SQLException e) {
+            // Ghi nhận lỗi log ra màn hình console để dễ dàng debug khi chạy lỗi kết nối
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        // Ghi nhận lỗi log ra màn hình console để dễ dàng debug khi chạy lỗi kết nối
-        e.printStackTrace(); 
+        return false;
     }
-    return false;
-}
 
     public boolean registerEmployee(String fullName, String email, String phone, String autoGeneratedPassword, int roleId, int branchId, String defaultStatus) {
-    // Câu lệnh SQL bám sát cấu trúc bảng Employee trong DBFinora.sql
-    // Trường CreatedAt không cần chèn vì đã được định nghĩa tự động: DEFAULT GETDATE() trong Database
-    String sql = "INSERT INTO Employee (RoleID, BranchID, FullName, Email, Phone, PasswordHash, Status) " +
-                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
-                 
+        // Câu lệnh SQL bám sát cấu trúc bảng Employee trong DBFinora.sql
+        // Trường CreatedAt không cần chèn vì đã được định nghĩa tự động: DEFAULT GETDATE() trong Database
+        String sql = "INSERT INTO Employee (RoleID, BranchID, FullName, Email, Phone, PasswordHash, Status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Gán các tham số đầu vào theo đúng thứ tự cột trong câu lệnh INSERT phía trên
+            ps.setInt(1, roleId);
+            ps.setInt(2, branchId);
+            ps.setString(3, fullName);
+            ps.setString(4, email);
+            ps.setString(5, phone);
+            ps.setString(6, autoGeneratedPassword); // Lưu trực tiếp mật khẩu tự sinh dạng văn bản thô
+            ps.setString(7, defaultStatus);
+
+            // Thực thi lệnh cập nhật cơ sở dữ liệu
+            int rowsAffected = ps.executeUpdate();
+
+            // Nếu số dòng bị ảnh hưởng lớn hơn 0 nghĩa là insert thành công dữ liệu xuống SQL Server
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    public boolean checkFullNameAndEmailMatch(String fullName, String email) {
+
+     String sql = "SELECT COUNT(*) FROM Employee "
+               + "WHERE LOWER(LTRIM(RTRIM(FullName))) = LOWER(LTRIM(RTRIM(?))) "
+               + "AND LOWER(LTRIM(RTRIM(Email))) = LOWER(LTRIM(RTRIM(?))) "
+               + "AND Status = 'active'";
+
     try (Connection conn = DatabaseUtil.getConnection();
          PreparedStatement ps = conn.prepareStatement(sql)) {
-        
-        // Gán các tham số đầu vào theo đúng thứ tự cột trong câu lệnh INSERT phía trên
-        ps.setInt(1, roleId);
-        ps.setInt(2, branchId);
-        ps.setString(3, fullName);
-        ps.setString(4, email);
-        ps.setString(5, phone);
-        ps.setString(6, autoGeneratedPassword); // Lưu trực tiếp mật khẩu tự sinh dạng văn bản thô
-        ps.setString(7, defaultStatus);
-        
-        // Thực thi lệnh cập nhật cơ sở dữ liệu
-        int rowsAffected = ps.executeUpdate();
-        
-        // Nếu số dòng bị ảnh hưởng lớn hơn 0 nghĩa là insert thành công dữ liệu xuống SQL Server
-        return rowsAffected > 0;
-        
+
+        ps.setString(1, fullName);
+        ps.setString(2, email);
+
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+
     } catch (SQLException e) {
         e.printStackTrace();
     }
+
     return false;
 }
 

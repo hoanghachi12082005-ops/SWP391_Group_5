@@ -17,41 +17,43 @@ public class AuthFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
+public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        throws IOException, ServletException {
 
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        HttpSession session = httpRequest.getSession(false);
+    HttpServletRequest httpRequest = (HttpServletRequest) request;
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
+    HttpSession session = httpRequest.getSession(false);
 
-        // Kiểm tra trạng thái đăng nhập
-        boolean isLoggedIn = (session != null && session.getAttribute("employee") != null);
-        String loginURI = httpRequest.getContextPath() + "/login";
+    boolean isLoggedIn = (session != null && session.getAttribute("employee") != null);
+    String loginURI = httpRequest.getContextPath() + "/login";
+    
+    // ĐỊNH NGHĨA THÊM ĐƯỜNG DẪN TRANG ĐĂNG KÝ (Tùy theo cấu hình URL Servlet của bạn)
+    String registerURI = httpRequest.getContextPath() + "/register"; // Hoặc "/admin/register"
 
-        boolean isLoginRequest = httpRequest.getRequestURI().equals(loginURI);
-        boolean isLoginPage = httpRequest.getRequestURI().endsWith("login.jsp");
+    boolean isLoginRequest = httpRequest.getRequestURI().equals(loginURI);
+    boolean isLoginPage = httpRequest.getRequestURI().endsWith("login.jsp");
+    
+    // THÊM BIẾN KIỂM TRA XEM CÓ PHẢI LÀ REQUEST VÀO TRANG ĐĂNG KÝ KHÔNG
+    boolean isRegisterRequest = httpRequest.getRequestURI().equals(registerURI);
 
-        // Thêm kiểm tra loại bỏ các tài nguyên tĩnh như CSS, JS, hình ảnh nếu cần thiết
-        boolean isResourceRequest = httpRequest.getRequestURI().contains("/assets/") 
-                || httpRequest.getRequestURI().endsWith(".css") 
-                || httpRequest.getRequestURI().endsWith(".js");
+    boolean isResourceRequest = httpRequest.getRequestURI().contains("/assets/") 
+            || httpRequest.getRequestURI().endsWith(".css") 
+            || httpRequest.getRequestURI().endsWith(".js");
 
-        if (isLoggedIn || isLoginRequest || isLoginPage || isResourceRequest) {
-            
-            // NẾU NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP VÀ ĐANG VÀO TRANG QUẢN TRỊ NỘI BỘ
-            if (isLoggedIn && !isLoginRequest && !isLoginPage && !isResourceRequest) {
-                // Ép trình duyệt KHÔNG ĐƯỢC LƯU CACHE các dữ liệu giao diện của trang quản trị này
-                httpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
-                httpResponse.setHeader("Pragma", "no-cache"); // HTTP 1.0
-                httpResponse.setDateHeader("Expires", 0); // Định thời gian hết hạn cache ngay lập tức
-            }
-            
-            chain.doFilter(request, response);
-        } else {
-            // Chưa đăng nhập hoặc session đã bị hủy sau khi nhấn đăng xuất
-            httpResponse.sendRedirect(loginURI);
+    // BỔ SUNG "isRegisterRequest" VÀO ĐIỀU KIỆN CHO PHÉP ĐI QUA KHÔNG CẦN ĐĂNG NHẬP
+    if (isLoggedIn || isLoginRequest || isLoginPage || isResourceRequest || isRegisterRequest) {
+        
+        if (isLoggedIn && !isLoginRequest && !isLoginPage && !isResourceRequest && !isRegisterRequest) {
+            httpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
+            httpResponse.setHeader("Pragma", "no-cache"); 
+            httpResponse.setDateHeader("Expires", 0); 
         }
+        
+        chain.doFilter(request, response);
+    } else {
+        httpResponse.sendRedirect(loginURI);
     }
+}
 
     @Override
     public void destroy() {
