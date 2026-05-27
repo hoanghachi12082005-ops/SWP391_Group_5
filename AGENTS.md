@@ -124,3 +124,19 @@ MEM0 MEMORY POLICY:
   - analyze if it has long-term value
   - suggest adding it to Mem0
   - categorize it as [ARCH], [RULE], [PATTERN], [WORKFLOW], or [DECISION]
+  
+  
+Before implementation:
+- delegate memory retrieval to Mem0 subagents
+- search previous architecture decisions
+- search reusable patterns
+- search protected module rules
+
+For major features:
+1. Create planning documents
+2. Search Mem0 for related decisions
+3. Analyze existing architecture
+4. Generate implementation plan
+5. Implement incrementally
+6. Update docs
+7. Suggest long-term memory additions
