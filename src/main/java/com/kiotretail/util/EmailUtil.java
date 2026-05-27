@@ -7,7 +7,6 @@ import java.util.Properties;
 import java.util.Random;
 
 public class EmailUtil {
-
     // 1. Hàm sinh mật khẩu ngẫu nhiên bảo mật cao đầy đủ ký tự
     public static String generateRandomPassword() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$*";
@@ -60,12 +59,10 @@ public class EmailUtil {
     }
 
     public static boolean sendOTP(String toEmail, String otp) {
-
         final String fromEmail = "hoanghachi12082005@gmail.com"; 
         final String appPassword = "kzud qllx uklc bfnd"; // Thay thế bằng mật khẩu ứng dụng Gmail của bạn
-
+        
         Properties props = new Properties();
-
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
         props.put("mail.smtp.auth", "true");
@@ -80,31 +77,22 @@ public class EmailUtil {
         });
 
         try {
-
             Message message = new MimeMessage(session);
-
             message.setFrom(new InternetAddress(fromEmail));
-
             message.setRecipients(
                     Message.RecipientType.TO,
                     InternetAddress.parse(toEmail)
             );
-
             message.setSubject("Mã OTP đặt lại mật khẩu");
-
             message.setText(
                     "Mã OTP của bạn là: " + otp
                     + "\n\nKhông chia sẻ mã này cho bất kỳ ai."
             );
-
             Transport.send(message);
-
             return true;
-
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-
         return false;
     }
 }

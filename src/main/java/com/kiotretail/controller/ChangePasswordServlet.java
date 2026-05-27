@@ -3,14 +3,12 @@ package com.kiotretail.controller;
 import com.kiotretail.dao.EmployeeDAO;
 import com.kiotretail.model.Employee;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet("/change-password")
 public class ChangePasswordServlet extends HttpServlet {
 
     private EmployeeDAO employeeDAO;
@@ -23,7 +21,6 @@ public class ChangePasswordServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
         // Kiểm tra xem có tài khoản nào đang trong trạng thái đăng nhập/kích hoạt không
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("employee") == null) {
@@ -31,8 +28,6 @@ public class ChangePasswordServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        
-        // Hiển thị giao diện đổi mật khẩu
         request.getRequestDispatcher("/WEB-INF/views/auth/change-password.jsp").forward(request, response);
     }
 
