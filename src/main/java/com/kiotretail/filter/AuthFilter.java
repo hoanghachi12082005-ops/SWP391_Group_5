@@ -4,6 +4,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import com.kiotretail.util.RolePermissionUtil;
 import java.io.IOException;
 
 /**
@@ -44,6 +45,14 @@ public void doFilter(ServletRequest request, ServletResponse response, FilterCha
     if (isLoggedIn || isLoginRequest || isLoginPage || isResourceRequest || isRegisterRequest) {
         
         if (isLoggedIn && !isLoginRequest && !isLoginPage && !isResourceRequest && !isRegisterRequest) {
+            HttpSession s = httpRequest.getSession(false);
+            String roleName = (String) s.getAttribute("roleName");
+            if (s.getAttribute("canViewCategory") == null && roleName != null) {
+                s.setAttribute("canViewCategory", RolePermissionUtil.canViewCategory(roleName));
+                s.setAttribute("canManageCategory", RolePermissionUtil.canManageCategory(roleName));
+                s.setAttribute("canAccessPos", RolePermissionUtil.canAccessPos(roleName));
+            }
+
             httpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
             httpResponse.setHeader("Pragma", "no-cache"); 
             httpResponse.setDateHeader("Expires", 0); 
