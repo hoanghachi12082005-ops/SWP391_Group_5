@@ -1,0 +1,35 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 27 May 2026, 21:13:39
+    Author     : PCQN
+*/
+.page-header{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:24px}.page-header h2{margin:0;font-size:24px;line-height:32px}.page-header p{margin:6px 0 0;color:var(--secondary)}.btn-primary,.btn-secondary{min-height:40px;padding:9px 14px;border-radius:var(--radius-md);display:inline-flex;align-items:center;gap:8px;border:0;font-weight:700;font-size:13px}.btn-primary{background:var(--primary);color:var(--on-primary)}.btn-primary:hover{background:var(--primary-hover)}.btn-secondary{background:var(--surface-container-lowest);color:var(--secondary);border:1px solid var(--outline-variant)}.alert{border-radius:var(--radius-md);padding:12px 14px;margin-bottom:18px;font-weight:600}.alert-success{background:var(--success-bg);color:var(--success-text);border:1px solid var(--success-border)}.alert-error{background:var(--error-container);color:var(--on-error-container);border:1px solid rgba(186,26,26,.18)}.filter-card,.table-card{background:rgba(255,255,255,.86);border:1px solid var(--outline-variant);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm)}.filter-card{padding:16px;margin-bottom:24px}.filter-grid{display:flex;align-items:end;gap:14px;flex-wrap:wrap}.form-group{display:flex;flex-direction:column;gap:6px}.form-group label{color:var(--secondary);font-size:12px;font-weight:700}.form-group input,.form-group select{min-height:40px;border:1px solid var(--outline-variant);border-radius:var(--radius-md);background:var(--surface);padding:0 12px;outline:0;min-width:160px}.filter-search{flex:1;min-width:260px}.filter-actions{display:flex;gap:10px}.table-card{overflow:hidden}.table-scroll{overflow-x:auto}.data-table{width:100%;border-collapse:collapse}.data-table thead{background:var(--surface)}.data-table th{padding:14px 18px;color:var(--secondary);text-align:left;text-transform:uppercase;letter-spacing:.04em;font-size:12px}.data-table td{padding:16px 18px;border-top:1px solid rgba(227,189,191,.55);vertical-align:middle}.user-cell{display:flex;align-items:center;gap:12px}.user-cell strong{display:block}.user-cell span{display:block;color:var(--secondary);font-size:12px;margin-top:2px}.avatar-text{width:40px;height:40px;border-radius:999px;background:var(--primary-fixed);color:var(--on-primary-fixed);border:1px solid var(--outline-variant);display:flex;align-items:center;justify-content:center;font-weight:800}.role-badge{display:inline-flex;padding:5px 9px;border-radius:var(--radius-sm);background:var(--surface-container-high);font-size:12px;font-weight:700}.status-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.status-badge.active{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}.status-badge.locked{background:var(--error-container);color:var(--on-error-container);border:1px solid rgba(186,26,26,.18)}.table-actions{display:flex;justify-content:flex-end;align-items:center;gap:6px}.table-actions a,.table-actions button{width:32px;height:32px;border-radius:var(--radius-sm);border:0;background:transparent;color:var(--secondary);display:inline-flex;align-items:center;justify-content:center}.table-actions a:hover,.table-actions button:hover{background:var(--primary-fixed);color:var(--primary)}.table-actions form{margin:0}.empty-row{text-align:center;color:var(--secondary);padding:42px!important}.table-footer{padding:14px 18px;border-top:1px solid var(--outline-variant);color:var(--secondary);font-size:12px}
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.checkbox-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(143, 111, 108, 0.35);
+    border-radius: var(--radius-md);
+    background: var(--surface-bright);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.checkbox-card:hover {
+    border-color: var(--primary);
+    background: var(--surface-container-low);
+}
+
+.checkbox-card input {
+    width: auto;
+}
